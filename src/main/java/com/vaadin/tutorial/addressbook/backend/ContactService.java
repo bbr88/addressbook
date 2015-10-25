@@ -79,8 +79,8 @@ public class ContactService {
                 paper.setTitle(rs.getString(2));
                 paper.setType(rs.getString(3));
                 paper.setYear(rs.getInt(4));
-//                paper.setMdate(new Date());
-                paper.setMdate(new Date(rs.getString(5))); //TODO probably it won't work properly:(
+                paper.setMdate(new Date());
+//                paper.setMdate(new Date(rs.getString(5))); //TODO and it fucking doesn't work!
                 paper.setURL(rs.getString(6));
                 papers.add(paper);
                 paper = new Paper();
