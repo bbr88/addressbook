@@ -18,6 +18,7 @@ import com.vaadin.ui.themes.ValoTheme;
  */
 public class ContactForm extends FormLayout {
 
+    Button justTest = new Button("JUST TEST", this::save);
     Button save = new Button("Save", this::save);
     Button cancel = new Button("Cancel", this::cancel);
     TextField firstName = new TextField("First name");
