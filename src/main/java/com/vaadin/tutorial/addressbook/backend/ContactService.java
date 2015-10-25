@@ -20,10 +20,11 @@ public class ContactService {
             "Nina", "Alex", "Rita", "Dan", "Umberto", "Henrik", "Rene", "Lisa",
             "Linda", "Timothy", "Daniel", "Brian", "George", "Scott",
             "Jennifer" };
-    static String[] lnames = { "Smith", "Johnson", "Williams", "Jones",
-            "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor",
-            "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin",
-            "Thompson", "Young", "King", "Robinson" };
+
+    static String[] keys = { "Peter", "Alice", "John", "Mike", "Olivia",
+            "Nina", "Alex", "Rita", "Dan", "Umberto", "Henrik", "Rene", "Lisa",
+            "Linda", "Timothy", "Daniel", "Brian", "George", "Scott",
+            "Jennifer" };
 
     private static ContactService instance;
 
@@ -35,16 +36,13 @@ public class ContactService {
             Random r = new Random(0);
             Calendar cal = Calendar.getInstance();
             for (int i = 0; i < 100; i++) {
-                Contact contact = new Contact();
-                contact.setFirstName(fnames[r.nextInt(fnames.length)]);
-                contact.setLastName(lnames[r.nextInt(fnames.length)]);
-                contact.setEmail(contact.getFirstName().toLowerCase() + "@"
-                        + contact.getLastName().toLowerCase() + ".com");
-                contact.setPhone("+ 358 555 " + (100 + r.nextInt(900)));
+                Paper paper = new Paper();
+                paper.setName(fnames[r.nextInt(fnames.length)]);
+                paper.setKey(keys[r.nextInt(keys.length)]);
                 cal.set(1930 + r.nextInt(70),
                         r.nextInt(11), r.nextInt(28));
-                contact.setBirthDate(cal.getTime());
-                contactService.save(contact);
+                paper.setMdate(cal.getTime());
+                contactService.save(paper);
             }
             instance = contactService;
         }
@@ -52,29 +50,30 @@ public class ContactService {
         return instance;
     }
 
-    private HashMap<Long, Contact> contacts = new HashMap<>();
+    private HashMap<String, Paper> contacts = new HashMap<>();
     private long nextId = 0;
 
-    public synchronized List<Contact> findAll(String stringFilter) {
+    public synchronized List<Paper> findAll(String stringFilter) {
         ArrayList arrayList = new ArrayList();
-        for (Contact contact : contacts.values()) {
+        for (Paper paper : contacts.values()) {
             try {
                 boolean passesFilter = (stringFilter == null || stringFilter.isEmpty())
-                        || contact.toString().toLowerCase()
-                                .contains(stringFilter.toLowerCase());
+                        || paper.toString().toLowerCase()
+                        .contains(stringFilter.toLowerCase());
                 if (passesFilter) {
-                    arrayList.add(contact.clone());
+                    arrayList.add(paper.clone());
                 }
             } catch (CloneNotSupportedException ex) {
                 Logger.getLogger(ContactService.class.getName()).log(
                         Level.SEVERE, null, ex);
             }
         }
-        Collections.sort(arrayList, new Comparator<Contact>() {
+        Collections.sort(arrayList, new Comparator<Paper>() {
 
             @Override
-            public int compare(Contact o1, Contact o2) {
-                return (int) (o2.getId() - o1.getId());
+            public int compare(Paper o1, Paper o2) {
+                //return (int) (o2.getId() - o1.getId());
+                return 0; //TODO
             }
         });
         return arrayList;
@@ -84,20 +83,21 @@ public class ContactService {
         return contacts.size();
     }
 
-    public synchronized void delete(Contact value) {
-        contacts.remove(value.getId());
+    public synchronized void delete(Paper value) {
+        //contacts.remove(value.getId());
+        //TODO
     }
 
-    public synchronized void save(Contact entry) {
-        if (entry.getId() == null) {
-            entry.setId(nextId++);
+    public synchronized void save(Paper entry) {
+        if (entry.getKey() == null) {
+            return;
         }
         try {
-            entry = (Contact) BeanUtils.cloneBean(entry);
+            entry = (Paper) BeanUtils.cloneBean(entry);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-        contacts.put(entry.getId(), entry);
+        contacts.put(entry.getKey(), entry);
     }
 
 }
