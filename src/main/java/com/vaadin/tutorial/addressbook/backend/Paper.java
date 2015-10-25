@@ -19,9 +19,9 @@ public class Paper implements Serializable, Cloneable {
     private String name = "";
     private String title = "";
     private String type = "";
-    private String year = "";
-    private Date mdate;
     private String url = "";
+    private Integer year = null; //TODO fix it.
+    private Date mdate;
 
 
     public String getTitle() {
@@ -73,10 +73,10 @@ public class Paper implements Serializable, Cloneable {
         this.url = url;
     }
 
-    public void setYear(String year) {
+    public void setYear(int year) {
         this.year = year;
     }
-    public String getYear() {
+    public Integer getYear() {
         return this.year;
     }
 

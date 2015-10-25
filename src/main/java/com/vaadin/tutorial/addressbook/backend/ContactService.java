@@ -2,9 +2,10 @@ package com.vaadin.tutorial.addressbook.backend;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import java.sql.*;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Date;
+import java.util.stream.IntStream;
 
 /** Separate Java service class.
  * Backend implementation for the address book application, with "detached entities"
@@ -28,12 +29,21 @@ public class ContactService {
 
     private static ContactService instance;
 
+    private static String url = "jdbc:postgresql://localhost/dmdprojectdb";
+    private static String user = "bbr";
+    private static String password = "1488";
+
+
     public static ContactService createDemoService() {
         if (instance == null) {
 
             final ContactService contactService = new ContactService();
+            List<Paper> papers = new ArrayList<>(selectPapers());
 
-            Random r = new Random(0);
+            IntStream.range(0, 10)
+                     .forEach(i -> contactService.save(papers.get(i)));
+
+            /*Random r = new Random(0);
             Calendar cal = Calendar.getInstance();
             for (int i = 0; i < 100; i++) {
                 Paper paper = new Paper();
@@ -43,20 +53,50 @@ public class ContactService {
                         r.nextInt(11), r.nextInt(28));
                 paper.setMdate(cal.getTime());
                 contactService.save(paper);
-            }
+            }*/
             instance = contactService;
         }
-
         return instance;
     }
 
-    private HashMap<String, Paper> contacts = new HashMap<>();
-    private long nextId = 0;
+    private static List<Paper> selectPapers() {
+        List<Paper> papers = new ArrayList<>();
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        try (Connection c = DriverManager.getConnection(url, user, password);
+             Statement s = c.createStatement()) {
+
+            String sqlQuery = "SELECT * FROM PAPERS";
+            ResultSet rs = s.executeQuery(sqlQuery);
+            Paper paper = new Paper();
+
+            while (rs.next()) {
+                paper.setKey(rs.getString(1));
+                paper.setTitle(rs.getString(2));
+                paper.setType(rs.getString(3));
+                paper.setYear(rs.getInt(4));
+                paper.setMdate(new Date());
+                //paper.setMdate(new Date(rs.getString(5))); //TODO probably it won't work properly:(
+                paper.setURL(rs.getString(6));
+                papers.add(paper);
+                paper = new Paper();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return papers;
+    }
+
+//    private long nextId = 0;
+    private HashMap<String, Paper> papers = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public synchronized List<Paper> findAll(String stringFilter) {
         ArrayList arrayList = new ArrayList();
-        contacts.entrySet().stream()
+        papers.entrySet().stream()
                            .forEach(e -> {
                                boolean passesFilter = (stringFilter == null || stringFilter.isEmpty())
                                        || e.getValue().toString().toLowerCase().contains(stringFilter.toLowerCase());
@@ -77,11 +117,11 @@ public class ContactService {
     }
 
     public synchronized long count() {
-        return contacts.size();
+        return papers.size();
     }
 
     public synchronized void delete(Paper value) {
-        //contacts.remove(value.getId());
+        //papers.remove(value.getId());
         //TODO
     }
 
@@ -94,7 +134,8 @@ public class ContactService {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-        contacts.put(entry.getKey(), entry);
+        papers.put(entry.getKey(), entry);
     }
+
 
 }

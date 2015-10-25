@@ -7,6 +7,7 @@
           <element id="module-output" name="dmd_project" />
         </element>
         <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: postgresql:postgresql:9.1-901-1.jdbc4" />
           <element id="library" level="project" name="Maven: com.vaadin:vaadin-server:7.5.6" />
           <element id="library" level="project" name="Maven: com.vaadin:vaadin-sass-compiler:0.9.12" />
           <element id="library" level="project" name="Maven: org.w3c.css:sac:1.3" />
