@@ -62,10 +62,11 @@ public class ContactService {
     private static List<Paper> selectPapers() {
         List<Paper> papers = new ArrayList<>();
         try {
-            Class.forName("org.postgresql.Driver");
+            Class.forName("org.postgresql.Driver"); //TODO i'm not sure if it's necessary.
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+
         try (Connection c = DriverManager.getConnection(url, user, password);
              Statement s = c.createStatement()) {
 
@@ -78,8 +79,8 @@ public class ContactService {
                 paper.setTitle(rs.getString(2));
                 paper.setType(rs.getString(3));
                 paper.setYear(rs.getInt(4));
-                paper.setMdate(new Date());
-                //paper.setMdate(new Date(rs.getString(5))); //TODO probably it won't work properly:(
+//                paper.setMdate(new Date());
+                paper.setMdate(new Date(rs.getString(5))); //TODO probably it won't work properly:(
                 paper.setURL(rs.getString(6));
                 papers.add(paper);
                 paper = new Paper();
