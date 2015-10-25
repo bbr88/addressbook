@@ -53,27 +53,24 @@ public class ContactService {
     private HashMap<String, Paper> contacts = new HashMap<>();
     private long nextId = 0;
 
+    @SuppressWarnings("unchecked")
     public synchronized List<Paper> findAll(String stringFilter) {
         ArrayList arrayList = new ArrayList();
-        for (Paper paper : contacts.values()) {
-            try {
-                boolean passesFilter = (stringFilter == null || stringFilter.isEmpty())
-                        || paper.toString().toLowerCase()
-                        .contains(stringFilter.toLowerCase());
-                if (passesFilter) {
-                    arrayList.add(paper.clone());
-                }
-            } catch (CloneNotSupportedException ex) {
-                Logger.getLogger(ContactService.class.getName()).log(
-                        Level.SEVERE, null, ex);
-            }
-        }
+        contacts.entrySet().stream()
+                           .forEach(e -> {
+                               boolean passesFilter = (stringFilter == null || stringFilter.isEmpty())
+                                       || e.getValue().toString().toLowerCase().contains(stringFilter.toLowerCase());
+                               if (passesFilter) {
+                                   arrayList.add(e.getValue());
+                               }
+                           });
+
         Collections.sort(arrayList, new Comparator<Paper>() {
 
             @Override
             public int compare(Paper o1, Paper o2) {
                 //return (int) (o2.getId() - o1.getId());
-                return 0; //TODO
+                return o1.getTitle().compareTo(o2.getTitle());
             }
         });
         return arrayList;
