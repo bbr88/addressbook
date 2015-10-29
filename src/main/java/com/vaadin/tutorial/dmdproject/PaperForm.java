@@ -81,7 +81,9 @@ public class PaperForm extends FormLayout {
 
             String msg = String.format("Saved '%s'.",
                     paper.getName());
-            Notification.show(msg,Type.TRAY_NOTIFICATION);
+            if (paper != null && paper.getName().length() > 0) {
+                Notification.show(msg, Type.TRAY_NOTIFICATION);
+            }
 
             getUI().refreshContacts();
         } catch (FieldGroup.CommitException e) {
@@ -99,7 +101,7 @@ public class PaperForm extends FormLayout {
     public void edit(Paper paper) {
         this.paper = paper;
         if (paper != null) {
-            // Bind the properties of the paper POJO to fiels in this form
+            // Bind the properties of the paper POJO to fields in this form
             formFieldBindings = BeanFieldGroup.bindFieldsBuffered(paper, this);
             name.focus();
         }

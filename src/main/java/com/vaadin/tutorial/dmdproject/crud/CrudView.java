@@ -9,12 +9,7 @@ import com.vaadin.tutorial.dmdproject.backend.PaperService;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.button.MButton;
-import org.vaadin.viritin.grid.MGrid;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Created by bbr on 28.10.15.
@@ -27,6 +22,7 @@ public class CrudView extends CssLayout implements View {
 
     private CrudLogic crudLogic = new CrudLogic(this);
     private MButton newPaper;
+    private MButton searchPaper;
     private TextField filter;
 
     private PaperService service = new PaperService();
@@ -40,32 +36,20 @@ public class CrudView extends CssLayout implements View {
         paperList = new Grid(myBean);
         paperList.setColumnOrder("name", "title", "type", "year");
         paperList.removeColumn("key");
+        paperList.removeColumn("type");
+        paperList.removeColumn("url");
+        paperList.removeColumn("year");
+        paperList.removeColumn("mdate");
+        paperList.getColumn("name").setExpandRatio(1);
+        paperList.getColumn("title").setExpandRatio(3);
         paperList.setSizeFull(); //TODO
         paperList.setSelectionMode(Grid.SelectionMode.SINGLE);
         paperList.addSelectionListener(e
                 -> paperForm.edit((Paper) paperList.getSelectedRow()));
-        refreshContacts();
+        refreshPapers();
         setIt();
 
-        paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, service.selectPapers()));
-
-        /*List<Paper> papers = new ArrayList<>();
-        Paper testPaper = new Paper();
-        testPaper.setKey("qwe");
-        testPaper.setMdate(new Date());
-        testPaper.setURL("qwe.com");
-        testPaper.setName("IMYA KAROCH");
-        testPaper.setTitle("the title");
-        testPaper.setType("book");
-        testPaper.setYear(2075);
-        papers.add(testPaper);
-
-        paperList.setContainerDataSource(new BeanItemContainer<>(
-                Paper.class, papers));*/
-
-
-
-        paperForm = new PaperForm();
+        //paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, service.selectPapers()));
 
         VerticalLayout barAndListLayout = new VerticalLayout();
         barAndListLayout.addComponent(topLayout);
@@ -80,27 +64,37 @@ public class CrudView extends CssLayout implements View {
         addComponent(paperForm);
 
         crudLogic.init();
-//        refreshContacts();
-//        setIt();
     }
 
     private HorizontalLayout createTopBar() {
         filter = new TextField();
         filter.setStyleName("filter-textfield");
         filter.setInputPrompt("Filter papers...");
-        filter.addTextChangeListener(e -> refreshContacts(filter.getValue()));
+        //filter.addTextChangeListener(e -> refreshPapers(filter.getValue()));
+
+        searchPaper = new MButton("Search");
+        searchPaper.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        searchPaper.setIcon(FontAwesome.ARCHIVE);
+        searchPaper.addClickListener(e -> searchPapers(filter.getValue()));
 
         newPaper = new MButton("New paper");
         newPaper.addStyleName(ValoTheme.BUTTON_PRIMARY);
         newPaper.setIcon(FontAwesome.PLUS_CIRCLE);
         newPaper.addClickListener(e -> paperForm.edit(new Paper()));
 
+        paperForm = new PaperForm();
+        paperForm.setSizeFull();
+
         HorizontalLayout mainLayout = new HorizontalLayout();
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
         mainLayout.addComponent(filter);
         mainLayout.addComponent(newPaper);
-        mainLayout.setComponentAlignment(newPaper, Alignment.TOP_RIGHT); //TODO
+        mainLayout.addComponent(searchPaper);
+        mainLayout.addComponent(paperForm);
+        mainLayout.setComponentAlignment(paperForm, Alignment.TOP_RIGHT); //TODO
+        mainLayout.setComponentAlignment(searchPaper, Alignment.TOP_RIGHT);
+        mainLayout.setComponentAlignment(newPaper, Alignment.TOP_RIGHT);
         mainLayout.setComponentAlignment(filter, Alignment.MIDDLE_LEFT);
         mainLayout.setExpandRatio(filter, 1);
         mainLayout.setExpandRatio(newPaper, 1);
@@ -126,13 +120,19 @@ public class CrudView extends CssLayout implements View {
                 Paper.class, service.findAll("")));
     }
 
-    protected void refreshContacts() {
-        refreshContacts(filter.getValue());
+    protected void refreshPapers() {
+        refreshPapers(filter.getValue());
 
     }
-    private void refreshContacts(String stringFilter) {
+
+    private void searchPapers(String s) {
+        paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, service.search(s)));
+    }
+
+    private void refreshPapers(String stringFilter) {
         paperList.setContainerDataSource(new BeanItemContainer<>(
                 Paper.class, service.findAll(stringFilter)));
+
         if (paperForm != null) {
             paperForm.setVisible(false);
         }

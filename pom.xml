@@ -6,7 +6,7 @@
 	<artifactId>addressbook</artifactId>
 	<packaging>war</packaging>
 	<version>2.0</version>
-	<name>Vaadin Addressbook example</name>
+	<name>DBLP</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -20,7 +20,7 @@ public class Paper implements Serializable, Cloneable {
     private String title = "";
     private String type = "";
     private String url = "";
-    private Integer year = null; //TODO fix it.
+    private Integer year = null;
     private Date mdate;
 
 
@@ -65,11 +65,11 @@ public class Paper implements Serializable, Cloneable {
         this.mdate = mdate;
     }
 
-    public String getURL() {
+    public String getUrl() {
         return this.url;
     }
 
-    public void setURL(String url) {
+    public void setUrl(String url) {
         this.url = url;
     }
 

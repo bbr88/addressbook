@@ -18,7 +18,7 @@ public class CrudLogic { //TODO
             crudView.setPaperListEnabled(false);
             crudView.setNewPaperEnabled(false);
         }
-//        crudView.refreshContacts();
+//        crudView.refreshPapers();
 //        crudView.setIt();
     }
 }
