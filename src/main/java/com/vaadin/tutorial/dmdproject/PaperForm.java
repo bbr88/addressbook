@@ -1,12 +1,14 @@
-package com.vaadin.tutorial.addressbook;
+package com.vaadin.tutorial.dmdproject;
 
 import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.event.ShortcutAction;
-import com.vaadin.tutorial.addressbook.backend.Paper;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.viritin.button.MButton;
 
 /* Create custom UI Components.
  *
@@ -16,9 +18,9 @@ import com.vaadin.ui.themes.ValoTheme;
  * Similarly named field by naming convention or customized
  * with @PropertyId annotation.
  */
-public class ContactForm extends FormLayout {
+public class PaperForm extends FormLayout {
 
-    Button save = new Button("Save", this::save);
+    Button save = new MButton(FontAwesome.SAVE, this::save);
     Button cancel = new Button("Cancel", this::cancel);
     TextField name = new TextField("Author");
     TextField title = new TextField("Title");
@@ -32,7 +34,7 @@ public class ContactForm extends FormLayout {
     // Easily bind forms to beans and manage validation and buffering
     BeanFieldGroup<Paper> formFieldBindings;
 
-    public ContactForm() {
+    public PaperForm() {
         configureComponents();
         buildLayout();
     }
@@ -80,6 +82,7 @@ public class ContactForm extends FormLayout {
             String msg = String.format("Saved '%s'.",
                     paper.getName());
             Notification.show(msg,Type.TRAY_NOTIFICATION);
+
             getUI().refreshContacts();
         } catch (FieldGroup.CommitException e) {
             // Validation exceptions could be shown here
@@ -89,12 +92,13 @@ public class ContactForm extends FormLayout {
     public void cancel(Button.ClickEvent event) {
         // Place to call business logic.
         Notification.show("Cancelled", Type.TRAY_NOTIFICATION);
-        getUI().contactList.select(null);
+        getUI().paperList.select(null);
+        this.setVisible(false); //TODO
     }
 
-    void edit(Paper paper) {
+    public void edit(Paper paper) {
         this.paper = paper;
-        if(paper != null) {
+        if (paper != null) {
             // Bind the properties of the paper POJO to fiels in this form
             formFieldBindings = BeanFieldGroup.bindFieldsBuffered(paper, this);
             name.focus();
@@ -103,8 +107,8 @@ public class ContactForm extends FormLayout {
     }
 
     @Override
-    public AddressbookUI getUI() {
-        return (AddressbookUI) super.getUI();
+    public PapersUI getUI() {
+        return (PapersUI) super.getUI();
     }
 
 }

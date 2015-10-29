@@ -1,4 +1,4 @@
-package com.vaadin.tutorial.addressbook.backend;
+package com.vaadin.tutorial.dmdproject.backend;
 
 import org.apache.commons.beanutils.BeanUtils;
 
@@ -14,52 +14,38 @@ import java.util.stream.IntStream;
  */
 // Backend service class. This is just a typical Java backend implementation
 // class and nothing Vaadin specific.
-public class ContactService {
+public class PaperService {
 
-    // Create dummy data by randomly combining first and last names
-    static String[] fnames = { "Peter", "Alice", "John", "Mike", "Olivia",
-            "Nina", "Alex", "Rita", "Dan", "Umberto", "Henrik", "Rene", "Lisa",
-            "Linda", "Timothy", "Daniel", "Brian", "George", "Scott",
-            "Jennifer" };
-
+    // Create dummy data
     static String[] keys = { "Peter", "Alice", "John", "Mike", "Olivia",
             "Nina", "Alex", "Rita", "Dan", "Umberto", "Henrik", "Rene", "Lisa",
             "Linda", "Timothy", "Daniel", "Brian", "George", "Scott",
             "Jennifer" };
 
-    private static ContactService instance;
+    private static PaperService instance;
 
     private static String url = "jdbc:postgresql://localhost/dmdprojectdb";
     private static String user = "bbr";
     private static String password = "1488";
 
 
-    public static ContactService createDemoService() {
+    public static PaperService createDemoService() {
         if (instance == null) {
 
-            final ContactService contactService = new ContactService();
+            final PaperService paperService = new PaperService();
             List<Paper> papers = new ArrayList<>(selectPapers());
 
-            IntStream.range(0, 10)
-                     .forEach(i -> contactService.save(papers.get(i)));
+            /*IntStream.range(0, papers.size())
+                     .forEach(i -> paperService.save(papers.get(i)));*/
+            IntStream.range(0, 30)
+                    .forEach(i -> paperService.save(papers.get(i)));
 
-            /*Random r = new Random(0);
-            Calendar cal = Calendar.getInstance();
-            for (int i = 0; i < 100; i++) {
-                Paper paper = new Paper();
-                paper.setName(fnames[r.nextInt(fnames.length)]);
-                paper.setKey(keys[r.nextInt(keys.length)]);
-                cal.set(1930 + r.nextInt(70),
-                        r.nextInt(11), r.nextInt(28));
-                paper.setMdate(cal.getTime());
-                contactService.save(paper);
-            }*/
-            instance = contactService;
+            instance = paperService;
         }
         return instance;
     }
 
-    private static List<Paper> selectPapers() {
+    public static List<Paper> selectPapers() {
         List<Paper> papers = new ArrayList<>();
         try {
             Class.forName("org.postgresql.Driver"); //TODO i'm not sure if it's necessary.
@@ -91,7 +77,6 @@ public class ContactService {
         return papers;
     }
 
-//    private long nextId = 0;
     private HashMap<String, Paper> papers = new HashMap<>();
 
     @SuppressWarnings("unchecked")

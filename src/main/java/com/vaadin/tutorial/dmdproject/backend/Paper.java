@@ -1,4 +1,4 @@
-package com.vaadin.tutorial.addressbook.backend;
+package com.vaadin.tutorial.dmdproject.backend;
 
 import org.apache.commons.beanutils.BeanUtils;
 

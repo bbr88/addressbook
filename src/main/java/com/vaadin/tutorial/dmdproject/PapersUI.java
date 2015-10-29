@@ -1,14 +1,22 @@
-package com.vaadin.tutorial.addressbook;
+package com.vaadin.tutorial.dmdproject;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.navigator.Navigator;
+import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
-import com.vaadin.tutorial.addressbook.backend.Paper;
-import com.vaadin.tutorial.addressbook.backend.ContactService;
+import com.vaadin.tutorial.dmdproject.authentication.AccessControl;
+import com.vaadin.tutorial.dmdproject.authentication.LoginUI;
+import com.vaadin.tutorial.dmdproject.authentication.TestAccessControl;
+import com.vaadin.tutorial.dmdproject.backend.Paper;
+import com.vaadin.tutorial.dmdproject.backend.PaperService;
 import com.vaadin.ui.*;
+import com.vaadin.ui.declarative.Design;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.viritin.grid.MGrid;
 
 import javax.servlet.annotation.WebServlet;
 
@@ -18,9 +26,13 @@ import javax.servlet.annotation.WebServlet;
  * By default, a new UI instance is automatically created when the page is loaded. To reuse
  * the same instance, add @PreserveOnRefresh.
  */
-@Title("Addressbook")
-@Theme("valo")
-public class AddressbookUI extends UI {
+@Title("Paper search")
+//@Theme("valo")
+//@Theme("dmdproject")
+@Theme("mockapp")
+//@Theme("reindeer")
+//@Theme("runo")
+public class PapersUI extends UI {
 
 
 
@@ -35,16 +47,16 @@ public class AddressbookUI extends UI {
      * are over 500 more in vaadin.com/directory.
      */
     TextField filter = new TextField();
-    Grid contactList = new Grid();
+    Grid paperList = new MGrid();
     Button newContact = new Button("New paper");
 
-    // ContactForm is an example of a custom component class
-    ContactForm contactForm = new ContactForm();
+    // PaperForm is an example of a custom component class
+    PaperForm paperForm = new PaperForm();
 
-    // ContactService is a in-memory mock DAO that mimics
+    // PaperService is a in-memory mock DAO that mimics
     // a real-world datasource. Typically implemented for
     // example as EJB or Spring Data based service.
-    ContactService service = ContactService.createDemoService();
+    PaperService service = PaperService.createDemoService();
 
 
     /* The "Main method".
@@ -53,12 +65,63 @@ public class AddressbookUI extends UI {
      * the visible user interface. Executed on every browser reload because
      * a new instance is created for each web page loaded.
      */
-    @Override
-    protected void init(VaadinRequest request) {
-        configureComponents();
-        buildLayout();
+    private AccessControl accessControl = new TestAccessControl();
+
+    public static PapersUI get() {
+        return (PapersUI) UI.getCurrent();
     }
 
+    public AccessControl getAccessControl() {
+        return accessControl;
+    }
+
+    @Override
+    protected void init(VaadinRequest request) {
+        Responsive.makeResponsive(this);
+        setLocale(request.getLocale());
+        getPage().setTitle("DBLP for u and me");
+        if (!accessControl.isUserSigned()) {
+            setContent(new LoginUI(accessControl, new LoginUI.LoginListener() {
+                @Override
+                public void loginSuccessful() {
+                    showMainView();
+                }
+            }));
+        } else {
+            showMainView();
+        }
+    }
+
+    protected void showMainView() {
+        addStyleName(ValoTheme.UI_WITH_MENU);
+        setContent(new MainScreen(PapersUI.this));
+        getNavigator().navigateTo(getNavigator().getState());
+    }
+
+    /*protected void init(VaadinRequest request) {
+        setLocale(request.getLocale());
+        getPage().setTitle("DBLP for u and me");
+        if (!accessControl.isUserSigned()) {
+            setContent(new LoginUI(accessControl, new LoginUI.LoginListener() {
+                @Override
+                public void loginSuccessful() {
+                    configureComponents();
+                    buildLayout();
+                }
+            }));
+        } else {
+            configureComponents();
+            buildLayout();
+        }
+    }*/
+
+    /*protected void showMainView() {
+        addStyleName(ValoTheme.UI_WITH_MENU);
+        //setContent(new MainScreen(MockAppUI.this));
+        configureComponents();
+        buildLayout();
+        getNavigator().navigateTo(getNavigator().getState());
+    }*/
 
     private void configureComponents() {
          /* Synchronous event handling.
@@ -67,19 +130,19 @@ public class AddressbookUI extends UI {
          * to synchronously handle those events. Vaadin automatically sends
          * only the needed changes to the web page without loading a new page.
          */
-        newContact.addClickListener(e -> contactForm.edit(new Paper()));
+        newContact.addClickListener(e -> paperForm.edit(new Paper()));
 
         filter.setInputPrompt("Filter papers...");
         filter.addTextChangeListener(e -> refreshContacts(e.getText()));
 
         BeanItemContainer<Paper> myBean = new BeanItemContainer<Paper>(Paper.class);
-        contactList = new Grid(myBean);
-        //contactList.setContainerDataSource(new BeanItemContainer<>(Paper.class));
-        contactList.setColumnOrder("name", "title", "type", "year");
-        contactList.removeColumn("key");
-        contactList.setSelectionMode(Grid.SelectionMode.SINGLE);
-        contactList.addSelectionListener(e
-                -> contactForm.edit((Paper) contactList.getSelectedRow()));
+        paperList = new Grid(myBean);
+        //paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class));
+        paperList.setColumnOrder("name", "title", "type", "year");
+        paperList.removeColumn("key");
+        paperList.setSelectionMode(Grid.SelectionMode.SINGLE);
+        paperList.addSelectionListener(e
+                -> paperForm.edit((Paper) paperList.getSelectedRow()));
         refreshContacts();
     }
 
@@ -95,22 +158,25 @@ public class AddressbookUI extends UI {
      * with Vaadin Designer, CSS and HTML.
      */
     private void buildLayout() {
+
         HorizontalLayout actions = new HorizontalLayout(filter, newContact);
         actions.setWidth("100%");
         filter.setWidth("100%");
         actions.setExpandRatio(filter, 1);
 
-        VerticalLayout left = new VerticalLayout(actions, contactList);
+        VerticalLayout left = new VerticalLayout(actions, paperList);
         left.setSizeFull();
-        contactList.setSizeFull();
-        left.setExpandRatio(contactList, 1);
+        paperList.setSizeFull();
+        left.setExpandRatio(paperList, 1);
 
-        HorizontalLayout mainLayout = new HorizontalLayout(left, contactForm);
+        HorizontalLayout mainLayout = new HorizontalLayout(left, paperForm);
         mainLayout.setSizeFull();
         mainLayout.setExpandRatio(left, 1);
 
+
         // Split and allow resizing
         setContent(mainLayout);
+
     }
 
     /* Choose the design patterns you like.
@@ -126,9 +192,9 @@ public class AddressbookUI extends UI {
     }
 
     private void refreshContacts(String stringFilter) {
-        contactList.setContainerDataSource(new BeanItemContainer<>(
+        paperList.setContainerDataSource(new BeanItemContainer<>(
                 Paper.class, service.findAll(stringFilter)));
-        contactForm.setVisible(false);
+        paperForm.setVisible(false);
     }
 
 
@@ -140,7 +206,7 @@ public class AddressbookUI extends UI {
      *  class name and turn on production mode when you have finished developing the application.
      */
     @WebServlet(urlPatterns = "/*")
-    @VaadinServletConfiguration(ui = AddressbookUI.class, productionMode = false)
+    @VaadinServletConfiguration(ui = PapersUI.class, productionMode = false)
     public static class MyUIServlet extends VaadinServlet {
     }
 
