@@ -1,5 +1,6 @@
 package com.vaadin.tutorial.dmdproject.backend;
 
+import com.vaadin.ui.Notification;
 import org.apache.commons.beanutils.BeanUtils;
 
 import java.sql.*;
@@ -59,6 +60,9 @@ public class PaperService {
                     "WHERE LOWER (papers.title) LIKE \'%" + s.toLowerCase() + "%\'";
 
             ResultSet rs = search.executeQuery(sqlQuery);
+            if(!rs.next()){
+                Notification.show("No results found", Notification.Type.TRAY_NOTIFICATION);
+            }
             Paper paper = new Paper();
             while(rs.next()){
                 paper.setName(rs.getString(1));
@@ -146,6 +150,8 @@ public class PaperService {
         return arrayList;
     }
 
+
+
     public synchronized long count() {
         return papers.size();
     }
@@ -166,6 +172,8 @@ public class PaperService {
         }
         papers.put(entry.getKey(), entry);
     }
+
+
 
 
 }
