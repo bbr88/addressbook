@@ -60,6 +60,7 @@ public class PaperService {
                     "WHERE LOWER (papers.title) LIKE \'%" + s.toLowerCase() + "%\'";
 
             ResultSet rs = search.executeQuery(sqlQuery);
+
             if(!rs.next()){
                 Notification.show("No results found", Notification.Type.TRAY_NOTIFICATION);
             }
