@@ -72,6 +72,8 @@ public class PaperService {
                 papers.add(paper);
                 paper = new Paper();
             }
+            rs.close();
+
             Collections.sort(papers, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
             return papers;
         }
