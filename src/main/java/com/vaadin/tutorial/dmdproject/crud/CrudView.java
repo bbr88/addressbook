@@ -22,6 +22,7 @@ public class CrudView extends CssLayout implements View {
 
     private CrudLogic crudLogic = new CrudLogic(this);
     private MButton newPaper;
+    private MButton newAuthor;
     private MButton searchPaper;
     private TextField filter;
 
@@ -34,6 +35,8 @@ public class CrudView extends CssLayout implements View {
 
         BeanItemContainer<Paper> myBean = new BeanItemContainer<Paper>(Paper.class);
         paperList = new Grid(myBean);
+        paperList.addStyleName(ValoTheme.TABLE_NO_HORIZONTAL_LINES);
+        paperList.addStyleName(ValoTheme.TABLE_NO_VERTICAL_LINES);
         paperList.setColumnOrder("name", "title", "type", "year");
         paperList.removeColumn("key");
         paperList.removeColumn("type");
@@ -45,7 +48,10 @@ public class CrudView extends CssLayout implements View {
         paperList.setSizeFull(); //TODO
         paperList.setSelectionMode(Grid.SelectionMode.SINGLE);
         paperList.addSelectionListener(e
-                -> paperForm.edit((Paper) paperList.getSelectedRow()));
+                -> {
+            paperForm.edit((Paper) paperList.getSelectedRow());
+            paperForm.deletePaper();
+        });
         refreshPapers();
         setIt();
 
@@ -58,10 +64,13 @@ public class CrudView extends CssLayout implements View {
         barAndListLayout.setSpacing(true);
         barAndListLayout.setSizeFull();
         barAndListLayout.setExpandRatio(paperList, 1);
+//        barAndListLayout.addComponent(paperForm);
         barAndListLayout.setStyleName("crud-main-layout");
 
-        addComponent(barAndListLayout);
+        barAndListLayout.addComponent(paperForm);
         addComponent(paperForm);
+        addComponent(barAndListLayout);
+//        addComponentAsFirst(paperForm);
 
         crudLogic.init();
     }
@@ -82,30 +91,38 @@ public class CrudView extends CssLayout implements View {
         newPaper.setIcon(FontAwesome.PLUS_CIRCLE);
         newPaper.addClickListener(e -> paperForm.edit(new Paper()));
 
+        newAuthor = new MButton("Add author");
+        newAuthor.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        newAuthor.setIcon(FontAwesome.PLUS_CIRCLE);
+        //newAuthor.addClickListener(e ->); TODO
+
         paperForm = new PaperForm();
         paperForm.setSizeFull();
 
         HorizontalLayout mainLayout = new HorizontalLayout();
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
+
         mainLayout.addComponent(filter);
-        mainLayout.addComponent(newPaper);
         mainLayout.addComponent(searchPaper);
+        mainLayout.addComponent(newPaper);
+        mainLayout.addComponent(newAuthor);
         mainLayout.addComponent(paperForm);
-        mainLayout.setComponentAlignment(paperForm, Alignment.TOP_RIGHT); //TODO
-        mainLayout.setComponentAlignment(searchPaper, Alignment.TOP_RIGHT);
+
+        mainLayout.setComponentAlignment(paperForm, Alignment.TOP_CENTER); //TODO
+        mainLayout.setComponentAlignment(searchPaper, Alignment.MIDDLE_LEFT);
         mainLayout.setComponentAlignment(newPaper, Alignment.TOP_RIGHT);
+        mainLayout.setComponentAlignment(newAuthor, Alignment.TOP_RIGHT);
         mainLayout.setComponentAlignment(filter, Alignment.MIDDLE_LEFT);
-        mainLayout.setExpandRatio(filter, 1);
+
         mainLayout.setExpandRatio(newPaper, 1);
         mainLayout.setStyleName("top-bar");
-
         return mainLayout;
     }
 
     @Override
     public void enter(ViewChangeEvent event) {
-        //crudLogic.enter(event.getParameters());
+        Notification.show("Hello, Joo", Notification.Type.HUMANIZED_MESSAGE);
     }
 
     protected void setPaperListEnabled(boolean state) {
@@ -126,6 +143,10 @@ public class CrudView extends CssLayout implements View {
     }
 
     private void searchPapers(String s) {
+        if (s == null || s.length() == 0) {
+            Notification.show("Empty search field", Notification.Type.HUMANIZED_MESSAGE);
+            return;
+        }
         paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, service.search(s)));
     }
 

@@ -22,6 +22,7 @@ public class PaperForm extends FormLayout {
 
     Button save = new MButton(FontAwesome.SAVE, this::save);
     Button cancel = new Button("Cancel", this::cancel);
+    Button delete = new Button("Delete", this::delete);
     TextField name = new TextField("Author");
     TextField title = new TextField("Title");
     TextField type = new TextField("Type");
@@ -52,12 +53,20 @@ public class PaperForm extends FormLayout {
 
     private void buildLayout() {
         setSizeUndefined();
+//        setSizeFull();
+
         setMargin(true);
 
-        HorizontalLayout actions = new HorizontalLayout(save, cancel);
+        HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
         actions.setSpacing(true);
 
-        addComponents(actions, name, title, type, year, mdate, url);
+        title.setWidth("500px");
+        type.setWidth("500px");
+        name.setWidth("500px");
+        year.setWidth("500px");
+        mdate.setWidth("500px");
+        url.setWidth("500px");
+        addComponents(name, title, type, year, mdate, url, actions);
     }
 
     /* Use any JVM language.
@@ -89,6 +98,14 @@ public class PaperForm extends FormLayout {
         } catch (FieldGroup.CommitException e) {
             // Validation exceptions could be shown here
         }
+
+        setVisible(false);
+    }
+    private void delete(Button.ClickEvent event) {
+
+    }
+    public void deletePaper() {
+        Notification.show(this.paper.getKey());
     }
 
     public void cancel(Button.ClickEvent event) {

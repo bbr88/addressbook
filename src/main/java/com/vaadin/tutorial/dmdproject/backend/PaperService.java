@@ -1,5 +1,6 @@
 package com.vaadin.tutorial.dmdproject.backend;
 
+import com.vaadin.data.util.filter.Not;
 import com.vaadin.ui.Notification;
 import org.apache.commons.beanutils.BeanUtils;
 
@@ -162,7 +163,31 @@ public class PaperService {
         //TODO
     }
 
+
+
+    public void update(String key, String title, String year, String url){
+        try (Connection c = DriverManager.getConnection(url, user, password);
+             Statement update = c.createStatement()) {
+
+            String sqlQuery = "UPDATE " +
+                    "SET " +
+                    "title = \'" + title + "\'" +
+                    "year = " + Integer.parseInt(year) +
+                    "url = \'" + url + "\'" +
+                    "WHERE WRITTEN.Key = \'" + key + "\')";
+            int r = update.executeUpdate(sqlQuery);
+            if(r > 0){
+                Notification.show("Updated successfully");
+            }
+            update.executeQuery(sqlQuery);
+            //TODO remove from papers
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public synchronized void save(Paper entry) {
+        if (entry != null) {}
         if (entry.getKey() == null) {
             return;
         }
