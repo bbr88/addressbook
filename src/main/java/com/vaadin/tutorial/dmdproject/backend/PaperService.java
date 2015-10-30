@@ -19,9 +19,9 @@ public class PaperService {
 
     private static PaperService instance;
 
-    private static String url = "jdbc:postgresql://localhost/dmdprojectdb";
-    private static String user = "bbr";
-    private static String password = "1488";
+    private final static String url = "jdbc:postgresql://localhost/dmdprojectdb";
+    private final static String user = "bbr";
+    private final static String password = "1488";
 
 
     public static PaperService createDemoService() {
@@ -41,6 +41,15 @@ public class PaperService {
 
     public List<Paper> search(String s){
         List<Paper> papers = new ArrayList<>();
+
+
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
         try (Connection c = DriverManager.getConnection(url, user, password);
              Statement search = c.createStatement()) {
 
@@ -165,18 +174,70 @@ public class PaperService {
 
 
 
-    public void update(String key, String title, String year, String url){
+    public int createNewAuthor(Paper paper){
+        try (Connection c = DriverManager.getConnection(url, user, password);
+             Statement st = c.createStatement()) {
+            ResultSet rs = st.executeQuery("SELECT AuthorID FROM AUTHORS ORDER BY AuthorID DESC LIMIT 1");
+            int newAuthorID = 0;
+            if (rs.next()) {
+                newAuthorID = rs.getInt(1) + 1;
+
+                String sqlQuery = "INSERT INTO AUTHORS (name, AuthorID) VALUES" +
+                        "(\'" + paper.getName() + "\', " + newAuthorID + ");";
+                st.executeUpdate(sqlQuery);
+            }
+            return newAuthorID;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
+
+
+    public boolean authorExists(Paper paper){
+        try (Connection c = DriverManager.getConnection(url, user, password);
+             Statement st = c.createStatement()) {
+            ResultSet rs = st.executeQuery("SELECT name FROM AUTHORS WHERE name = \'" + paper.getName() + "\'");
+            boolean r = rs.next();
+            rs.close();
+            return r;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+    public void update(Paper newP) throws SQLException {
+        int r = 0;
+        int r2 = 0;
+        int id = 0;
         try (Connection c = DriverManager.getConnection(url, user, password);
              Statement update = c.createStatement()) {
-
-            String sqlQuery = "UPDATE " +
+            if(authorExists(newP)){
+                ResultSet rs = update.executeQuery("SELECT AuthorID FROM AUTHORS WHERE name = \'" + newP.getName() + "\'");
+                if (rs.next()) {
+                    id = rs.getInt(1);
+                }
+            }
+            else{
+                int tempId = createNewAuthor(newP);
+                if (tempId != 0) {
+                    id = tempId;
+                } else {
+                    Notification.show("pidrsuka.");
+                    return;
+                }
+            }
+            String sqlQuery = "UPDATE WRITTEN " +
                     "SET " +
-                    "title = \'" + title + "\'" +
-                    "year = " + Integer.parseInt(year) +
-                    "url = \'" + url + "\'" +
-                    "WHERE WRITTEN.Key = \'" + key + "\')";
-            int r = update.executeUpdate(sqlQuery);
-            if(r > 0){
+                    "AuthorID = \'" + id + "\' " +
+                    "WHERE WRITTEN.Key = \'" + newP.getKey() + "\') ";
+            r = update.executeUpdate(sqlQuery);
+            sqlQuery = "UPDATE papers " +
+                    "SET (title, url) = (\'" + newP.getTitle() + "\', \'" + newP.getUrl() + "\') " +
+                    "WHERE papers.Key = \'" + newP.getKey() + "\'";
+            r2 = update.executeUpdate(sqlQuery);
+            if(r > 0 && r2 > 0){
                 Notification.show("Updated successfully");
             }
             update.executeQuery(sqlQuery);
@@ -186,13 +247,90 @@ public class PaperService {
         }
     }
 
+    public void insert(Paper paper){
+        int id;
+        try (Connection c = DriverManager.getConnection(url, user, password);
+             Statement insert = c.createStatement()) {
+            long key = paper.getTitle().hashCode();
+            String sqlQuery = "INSERT INTO PAPERS (key, title, type, year, url, mdate)" +
+                    "VALUES (\'" + key + "\'," +
+                    "\'" + paper.getTitle() + "\'," +
+                    "\'" + paper.getType() + "\'," +
+                    "" + paper.getYear() + ", " +
+                    "\'" + paper.getUrl() + "\', " +
+                    "\'" + new java.sql.Date(1232141L) + "\')";
+            int r = insert.executeUpdate(sqlQuery);
+            if(authorExists(paper)){
+                ResultSet rs = insert.executeQuery("SELECT AuthorID FROM AUTHORS WHERE name = \'" + paper.getName() + "\'");
+                if (rs.next()) {
+                    id = rs.getInt(1);
+                }
+                else {
+                    Notification.show("ti huy.");
+                    return;
+                }
+            }
+            else{
+                id = createNewAuthor(paper);
+            }
+            sqlQuery = "INSERT INTO WRITTEN (AuthorID, Key)" +
+                    "VALUES (\'" + id + "\'," +
+                    "\'" + key + "\')";
+            int r2 = insert.executeUpdate(sqlQuery);
+            if(r > 0 && r2 > 0){
+                Notification.show("Inserted successfully");
+            }
+            //TODO remove from papers
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
+    public void update(String key, String title, String paperUrl){
+
+        try {
+            Class.forName("org.postgresql.Driver"); //TODO i'm not sure if it's necessary.
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try (Connection c = DriverManager.getConnection(url, user, password);
+             Statement update = c.createStatement()) {
+
+            String sqlQuery = "UPDATE papers " +
+                    "SET (title, url) = (\'" + title + "\', \'" + paperUrl + "\') " +
+                    "WHERE papers.Key = \'" + key + "\'";
+            int r = update.executeUpdate(sqlQuery);
+            if(r != 0) {
+                Notification.show("Updated successfully");
+            }
+
+//            update.executeQuery(sqlQuery);
+            //TODO remove from papers
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     public synchronized void save(Paper entry) {
-        if (entry != null) {}
+
+        try {
+            Class.forName("org.postgresql.Driver"); //TODO i'm not sure if it's necessary.
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         if (entry.getKey() == null) {
             return;
         }
         try {
             entry = (Paper) BeanUtils.cloneBean(entry);
+//            Notification.show(entry.getKey() + "  " + entry.getTitle() + "  " + entry.getYear() + "  " + entry.getUrl());
+//            update(entry.getKey(), entry.getTitle(), entry.getUrl());
+            insert(entry);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

@@ -4,53 +4,40 @@ import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.tutorial.dmdproject.backend.Author;
 import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.button.MButton;
 
-/* Create custom UI Components.
- *
- * Create your own Vaadin components by inheritance and composition.
- * This is a form component inherited from VerticalLayout. Use
- * Use BeanFieldGroup to bind data fields from DTO to UI fields.
- * Similarly named field by naming convention or customized
- * with @PropertyId annotation.
+/**
+ * Created by bbr on 30.10.15.
  */
-public class PaperForm extends FormLayout {
+public class AuthorForm extends FormLayout {
 
-    Button save = new MButton(FontAwesome.SAVE, this::save);
-    Button cancel = new Button("Cancel", this::cancel);
+    private Button save = new MButton(FontAwesome.SAVE, this::save);
+    private Button cancel = new Button("Cancel", this::cancel);
 
-    public Button getDelete() {
-        return delete;
-    }
+    private TextField name = new TextField("Author's name");
+    private TextField title = new TextField("Laboratory");
+    private TextField type = new TextField("University");
 
-    Button delete = new Button("Delete", this::delete);
-    TextField name = new TextField("Author");
-    TextField title = new TextField("Title");
-    TextField type = new TextField("Type");
-    TextField year = new TextField("Year");
-    DateField mdate = new DateField("mdate");
-    TextField url = new TextField("URL");
-
-    Paper paper;
+    private Author author;
 
     // Easily bind forms to beans and manage validation and buffering
-    BeanFieldGroup<Paper> formFieldBindings;
+    private BeanFieldGroup<Author> formFieldBindings;
 
-    public PaperForm() {
+    public AuthorForm() {
         configureComponents();
         buildLayout();
     }
 
+    /* Highlight primary actions.
+     *
+     * With Vaadin built-in styles you can highlight the primary save button
+     * and give it a keyboard shortcut for a better UX.
+     */
     private void configureComponents() {
-        /* Highlight primary actions.
-         *
-         * With Vaadin built-in styles you can highlight the primary save button
-         * and give it a keyboard shortcut for a better UX.
-         */
         save.setStyleName(ValoTheme.BUTTON_PRIMARY);
         save.setClickShortcut(ShortcutAction.KeyCode.ENTER);
         setVisible(false);
@@ -58,20 +45,16 @@ public class PaperForm extends FormLayout {
 
     private void buildLayout() {
         setSizeUndefined();
-//        setSizeFull();
-
         setMargin(true);
 
-        HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
+        HorizontalLayout actions = new HorizontalLayout(save, cancel);
         actions.setSpacing(true);
 
         title.setWidth("500px");
         type.setWidth("500px");
         name.setWidth("500px");
-        year.setWidth("500px");
-        mdate.setWidth("500px");
-        url.setWidth("500px");
-        addComponents(name, title, type, year, mdate, url, actions);
+
+        addComponents(name, title, type, actions);
     }
 
     /* Use any JVM language.
@@ -85,49 +68,51 @@ public class PaperForm extends FormLayout {
      * to various Vaadin component events, like button clicks. Or keep it simple
      * and compact with Lambda expressions.
      */
+
     public void save(Button.ClickEvent event) {
         try {
             // Commit the fields from UI to DAO
             formFieldBindings.commit();
 
             // Save DAO to backend with direct synchronous service API
-            getUI().service.save(paper);
+//            getUI().service.save(author); TODO
 
             String msg = String.format("Saved '%s'.",
-                    paper.getName());
-            if (paper != null && paper.getName().length() > 0) {
-                Notification.show(msg, Type.TRAY_NOTIFICATION);
+                    author.getName());
+            if (author != null && author.getName().length() > 0) {
+                Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
             }
 
-            getUI().refreshContacts();
+//            getUI().refreshContacts();
         } catch (FieldGroup.CommitException e) {
             // Validation exceptions could be shown here
         }
 
         setVisible(false);
     }
+
     private void delete(Button.ClickEvent event) {
 
     }
-    public void deletePaper() {
+    public void deleteAuthor() {
 //        Notification.show(this.paper.getKey());
     }
 
     public void cancel(Button.ClickEvent event) {
         // Place to call business logic.
-        Notification.show("Cancelled", Type.TRAY_NOTIFICATION);
+        Notification.show("Cancelled", Notification.Type.TRAY_NOTIFICATION);
         getUI().paperList.select(null);
         this.setVisible(false); //TODO
     }
 
-    public void edit(Paper paper) {
-        this.paper = paper;
-        if (paper != null) {
+    public void edit(Author author) {
+        this.author = author;
+        if (author != null) {
             // Bind the properties of the paper POJO to fields in this form
-            formFieldBindings = BeanFieldGroup.bindFieldsBuffered(paper, this);
+            formFieldBindings = BeanFieldGroup.bindFieldsBuffered(author, this);
             name.focus();
         }
-        setVisible(paper != null);
+        setVisible(author != null);
     }
 
     @Override

@@ -3,7 +3,9 @@ package com.vaadin.tutorial.dmdproject.crud;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.tutorial.dmdproject.AuthorForm;
 import com.vaadin.tutorial.dmdproject.PaperForm;
+import com.vaadin.tutorial.dmdproject.backend.Author;
 import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.tutorial.dmdproject.backend.PaperService;
 import com.vaadin.ui.*;
@@ -19,6 +21,7 @@ public class CrudView extends CssLayout implements View {
     public static final String VIEW_NAME = "DBLP"; //digital
     private Grid paperList;
     private PaperForm paperForm;
+    private AuthorForm authorForm;
 
     private CrudLogic crudLogic = new CrudLogic(this);
     private MButton newPaper;
@@ -50,6 +53,7 @@ public class CrudView extends CssLayout implements View {
         paperList.addSelectionListener(e
                 -> {
             paperForm.edit((Paper) paperList.getSelectedRow());
+            paperForm.getDelete().setVisible(true);
             paperForm.deletePaper();
         });
         refreshPapers();
@@ -69,6 +73,7 @@ public class CrudView extends CssLayout implements View {
 
         barAndListLayout.addComponent(paperForm);
         addComponent(paperForm);
+        addComponent(authorForm);
         addComponent(barAndListLayout);
 //        addComponentAsFirst(paperForm);
 
@@ -89,16 +94,24 @@ public class CrudView extends CssLayout implements View {
         newPaper = new MButton("New paper");
         newPaper.addStyleName(ValoTheme.BUTTON_PRIMARY);
         newPaper.setIcon(FontAwesome.PLUS_CIRCLE);
-        newPaper.addClickListener(e -> paperForm.edit(new Paper()));
+        newPaper.addClickListener(e -> {
+            paperForm.edit(new Paper());
+            paperForm.getDelete().setVisible(false);
+        });
 
         newAuthor = new MButton("Add author");
         newAuthor.addStyleName(ValoTheme.BUTTON_PRIMARY);
         newAuthor.setIcon(FontAwesome.PLUS_CIRCLE);
-        //newAuthor.addClickListener(e ->); TODO
-        //
+        newAuthor.addClickListener(e -> {
+            authorForm.edit(new Author());
+//            authorForm.getDelete().setVisible(false);
+        });
 
         paperForm = new PaperForm();
         paperForm.setSizeFull();
+
+        authorForm = new AuthorForm();
+        authorForm.setSizeFull();
 
         HorizontalLayout mainLayout = new HorizontalLayout();
         mainLayout.setSpacing(true);
@@ -109,8 +122,10 @@ public class CrudView extends CssLayout implements View {
         mainLayout.addComponent(newPaper);
         mainLayout.addComponent(newAuthor);
         mainLayout.addComponent(paperForm);
+        mainLayout.addComponent(authorForm);
 
         mainLayout.setComponentAlignment(paperForm, Alignment.TOP_CENTER); //TODO
+        mainLayout.setComponentAlignment(authorForm, Alignment.TOP_CENTER); //TODO
         mainLayout.setComponentAlignment(searchPaper, Alignment.MIDDLE_LEFT);
         mainLayout.setComponentAlignment(newPaper, Alignment.TOP_RIGHT);
         mainLayout.setComponentAlignment(newAuthor, Alignment.TOP_RIGHT);
