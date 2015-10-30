@@ -95,6 +95,7 @@ public class CrudView extends CssLayout implements View {
         newAuthor.addStyleName(ValoTheme.BUTTON_PRIMARY);
         newAuthor.setIcon(FontAwesome.PLUS_CIRCLE);
         //newAuthor.addClickListener(e ->); TODO
+        //
 
         paperForm = new PaperForm();
         paperForm.setSizeFull();
