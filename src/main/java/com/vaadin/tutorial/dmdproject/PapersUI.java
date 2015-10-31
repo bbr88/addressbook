@@ -4,17 +4,16 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.navigator.Navigator;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.tutorial.dmdproject.authentication.AccessControl;
 import com.vaadin.tutorial.dmdproject.authentication.LoginUI;
 import com.vaadin.tutorial.dmdproject.authentication.TestAccessControl;
+import com.vaadin.tutorial.dmdproject.backend.AuthorService;
 import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.tutorial.dmdproject.backend.PaperService;
 import com.vaadin.ui.*;
-import com.vaadin.ui.declarative.Design;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.grid.MGrid;
 
@@ -55,9 +54,9 @@ public class PapersUI extends UI {
 
     // PaperService is a in-memory mock DAO that mimics
     // a real-world datasource. Typically implemented for
-    // example as EJB or Spring Data based service.
-    PaperService service = PaperService.createDemoService();
-
+    // example as EJB or Spring Data based paperService.
+    PaperService paperService = PaperService.createDemoService();
+    AuthorService authorService = AuthorService.createDemoService();
 
     /* The "Main method".
      *
@@ -193,7 +192,7 @@ public class PapersUI extends UI {
 
     private void refreshContacts(String stringFilter) {
         paperList.setContainerDataSource(new BeanItemContainer<>(
-                Paper.class, service.findAll(stringFilter)));
+                Paper.class, paperService.findAll(stringFilter)));
         paperForm.setVisible(false);
     }
 

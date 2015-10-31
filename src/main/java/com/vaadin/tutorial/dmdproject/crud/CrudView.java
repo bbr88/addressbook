@@ -54,7 +54,9 @@ public class CrudView extends CssLayout implements View {
                 -> {
             paperForm.edit((Paper) paperList.getSelectedRow());
             paperForm.getDelete().setVisible(true);
-            paperForm.deletePaper();
+            paperForm.setInsert(false);
+            paperForm.refreshAuthors(service.getRelatedAuthors((Paper) paperList.getSelectedRow()));
+            paperForm.refreshTitles(service.getRelatedTitles((Paper) paperList.getSelectedRow()));
         });
         refreshPapers();
         setIt();
@@ -97,6 +99,7 @@ public class CrudView extends CssLayout implements View {
         newPaper.addClickListener(e -> {
             paperForm.edit(new Paper());
             paperForm.getDelete().setVisible(false);
+            paperForm.setInsert(true);
         });
 
         newAuthor = new MButton("Add author");

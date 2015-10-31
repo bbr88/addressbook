@@ -5,7 +5,6 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.tutorial.dmdproject.backend.Author;
-import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.button.MButton;
@@ -74,13 +73,14 @@ public class AuthorForm extends FormLayout {
             // Commit the fields from UI to DAO
             formFieldBindings.commit();
 
-            // Save DAO to backend with direct synchronous service API
-//            getUI().service.save(author); TODO
+            // Save DAO to backend with direct synchronous paperService API
+//            getUI().paperService.save(author); TODO
 
             String msg = String.format("Saved '%s'.",
                     author.getName());
             if (author != null && author.getName().length() > 0) {
                 Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
+                getUI().authorService.save(author);
             }
 
 //            getUI().refreshContacts();

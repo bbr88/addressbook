@@ -2,13 +2,17 @@ package com.vaadin.tutorial.dmdproject;
 
 import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup;
+import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.button.MButton;
+
+import java.util.List;
 
 /* Create custom UI Components.
  *
@@ -18,24 +22,42 @@ import org.vaadin.viritin.button.MButton;
  * Similarly named field by naming convention or customized
  * with @PropertyId annotation.
  */
-public class PaperForm extends FormLayout {
+public class PaperForm extends HorizontalLayout {
 
-    Button save = new MButton(FontAwesome.SAVE, this::save);
-    Button cancel = new Button("Cancel", this::cancel);
+    private Button save = new MButton(FontAwesome.SAVE, this::save);
+    private Button cancel = new Button("Cancel", this::cancel);
+    private Button delete = new Button("Delete", this::delete);
+
+    private BeanItemContainer<Paper> myBean = new BeanItemContainer<Paper>(Paper.class);
+    private Grid relatedAuthors = new Grid("by author", myBean);
+    private Grid relatedTitle = new Grid("by topic", myBean);
+
+    private boolean isInsert = false;
+
+    public boolean isInsert() {
+        return isInsert;
+    }
+    public void setInsert(boolean state) {
+        isInsert = state;
+    }
 
     public Button getDelete() {
         return delete;
     }
 
-    Button delete = new Button("Delete", this::delete);
-    TextField name = new TextField("Author");
-    TextField title = new TextField("Title");
-    TextField type = new TextField("Type");
-    TextField year = new TextField("Year");
-    DateField mdate = new DateField("mdate");
-    TextField url = new TextField("URL");
+    private TextField name = new TextField("Author");
+    private TextField title = new TextField("Title");
+    private TextField type = new TextField("Type");
+    private TextField year = new TextField("Year");
+    private DateField mdate = new DateField("mdate");
+    private TextField url = new TextField("URL");
 
     Paper paper;
+    Paper oldPaper;
+
+    public Paper getPaper() {
+        return paper;
+    }
 
     // Easily bind forms to beans and manage validation and buffering
     BeanFieldGroup<Paper> formFieldBindings;
@@ -53,17 +75,61 @@ public class PaperForm extends FormLayout {
          */
         save.setStyleName(ValoTheme.BUTTON_PRIMARY);
         save.setClickShortcut(ShortcutAction.KeyCode.ENTER);
+
+        delete.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        delete.setClickShortcut(ShortcutAction.KeyCode.DELETE);
+
         setVisible(false);
     }
 
     private void buildLayout() {
         setSizeUndefined();
-//        setSizeFull();
-
         setMargin(true);
+
+        //TODO
+        relatedAuthors.addSelectionListener(e -> {
+            edit((Paper) relatedAuthors.getSelectedRow());
+            getDelete().setVisible(true);
+            setInsert(false);
+        });
+
+        relatedAuthors.setColumnOrder("name", "title", "type", "year");
+        relatedAuthors.removeColumn("key");
+        relatedAuthors.removeColumn("type");
+        relatedAuthors.removeColumn("url");
+        relatedAuthors.removeColumn("year");
+        relatedAuthors.removeColumn("mdate");
+        relatedAuthors.getColumn("name").setExpandRatio(1);
+        relatedAuthors.getColumn("title").setExpandRatio(3);
+        relatedAuthors.setSizeFull(); //TODO
+        relatedAuthors.setHeight("250px");
+
+
+        relatedTitle.setColumnOrder("name", "title", "type", "year");
+        relatedTitle.removeColumn("key");
+        relatedTitle.removeColumn("type");
+        relatedTitle.removeColumn("url");
+        relatedTitle.removeColumn("year");
+        relatedTitle.removeColumn("mdate");
+        relatedTitle.getColumn("name").setExpandRatio(1);
+        relatedTitle.getColumn("title").setExpandRatio(3);
+        relatedTitle.setSizeFull(); //TODO
+        relatedTitle.setHeight("250px");
+
+
+        VerticalLayout fields = new VerticalLayout();
+        fields.setSpacing(true);
+
+        VerticalLayout grid = new VerticalLayout(relatedAuthors, relatedTitle);
+        grid.setCaption("Related articles:");
+        grid.setSpacing(true);
 
         HorizontalLayout actions = new HorizontalLayout(save, cancel, delete);
         actions.setSpacing(true);
+
+        /*VerticalLayout nameAndGrid = new VerticalLayout(relatedAuthors);
+        nameAndGrid.setSizeFull();*/
+
 
         title.setWidth("500px");
         type.setWidth("500px");
@@ -71,7 +137,8 @@ public class PaperForm extends FormLayout {
         year.setWidth("500px");
         mdate.setWidth("500px");
         url.setWidth("500px");
-        addComponents(name, title, type, year, mdate, url, actions);
+        fields.addComponents(name, title, type, year, mdate, url, actions);
+        addComponents(fields, grid);
     }
 
     /* Use any JVM language.
@@ -90,13 +157,11 @@ public class PaperForm extends FormLayout {
             // Commit the fields from UI to DAO
             formFieldBindings.commit();
 
-            // Save DAO to backend with direct synchronous service API
-            getUI().service.save(paper);
-
-            String msg = String.format("Saved '%s'.",
-                    paper.getName());
-            if (paper != null && paper.getName().length() > 0) {
-                Notification.show(msg, Type.TRAY_NOTIFICATION);
+            // Save DAO to backend with direct synchronous paperService API
+            if (isInsert) {
+                getUI().paperService.insert(paper);
+            } else {
+                getUI().paperService.save(paper, oldPaper);
             }
 
             getUI().refreshContacts();
@@ -107,10 +172,24 @@ public class PaperForm extends FormLayout {
         setVisible(false);
     }
     private void delete(Button.ClickEvent event) {
+        try {
+            formFieldBindings.commit();
 
+            getUI().paperService.delete(paper);
+
+        } catch (FieldGroup.CommitException e) {
+            e.printStackTrace();
+        }
+
+        setVisible(false);
     }
-    public void deletePaper() {
-//        Notification.show(this.paper.getKey());
+
+    public void refreshAuthors(List<Paper> authors) {
+        relatedAuthors.setContainerDataSource(new BeanItemContainer<Paper>(Paper.class, authors));
+    }
+
+    public void refreshTitles(List<Paper> titles) {
+        relatedTitle.setContainerDataSource(new BeanItemContainer<Paper>(Paper.class, titles));
     }
 
     public void cancel(Button.ClickEvent event) {
@@ -122,6 +201,7 @@ public class PaperForm extends FormLayout {
 
     public void edit(Paper paper) {
         this.paper = paper;
+
         if (paper != null) {
             // Bind the properties of the paper POJO to fields in this form
             formFieldBindings = BeanFieldGroup.bindFieldsBuffered(paper, this);
