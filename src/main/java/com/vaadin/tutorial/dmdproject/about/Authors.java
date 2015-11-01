@@ -10,24 +10,21 @@ import com.vaadin.ui.CustomLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+import java.awt.*;
+
 
 /**
  * Created by bbr on 28.10.15.
  */
-public class About extends VerticalLayout implements View {
+public class Authors extends VerticalLayout implements View {
 
-    public static final String VIEW_NAME = "About";
+    public static final String VIEW_NAME = "Authors";
 
-    public About() {
-        CustomLayout aboutContent = new CustomLayout("aboutview");
+    public Authors() {
+        CustomLayout aboutContent = new CustomLayout("authorsview");
         aboutContent.setStyleName("about-content");
 
-        // you can add Vaadin components in predefined slots in the custom
-        // layout
-        aboutContent.addComponent(
-                new Label(FontAwesome.INFO_CIRCLE.getHtml()
-                        + " This application is using Vaadin "
-                        + Version.getFullVersion(), ContentMode.HTML), "info");
+        aboutContent.addComponent(new Label("info"));
 
         setSizeFull();
         setStyleName("about-view");

@@ -5,10 +5,11 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.tutorial.dmdproject.crud.CrudView;
+import com.vaadin.tutorial.dmdproject.graph.Graph;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 
-import com.vaadin.tutorial.dmdproject.about.About;
+import com.vaadin.tutorial.dmdproject.about.Authors;
 
 /**
  * Created by bbr on 28.10.15.
@@ -27,7 +28,8 @@ public class MainScreen extends HorizontalLayout {
         navigator.setErrorView(ErrorView.class);
         menu = new Menu(navigator);
         menu.addView(new CrudView(), CrudView.VIEW_NAME, CrudView.VIEW_NAME, FontAwesome.EDIT);
-        menu.addView(new About(), About.VIEW_NAME, About.VIEW_NAME, FontAwesome.INFO_CIRCLE);
+        menu.addView(new Graph(), Graph.VIEW_NAME, Graph.VIEW_NAME, FontAwesome.EDIT);
+        menu.addView(new Authors(), Authors.VIEW_NAME, Authors.VIEW_NAME, FontAwesome.INFO_CIRCLE);
 
         navigator.addViewChangeListener(viewChangeListener);
 
