@@ -3,6 +3,7 @@ package com.vaadin.tutorial.dmdproject;
 import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.grid.HeightMode;
@@ -12,7 +13,9 @@ import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.button.MButton;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 /* Create custom UI Components.
  *
@@ -135,6 +138,7 @@ public class PaperForm extends HorizontalLayout {
         type.setWidth("500px");
         name.setWidth("500px");
         year.setWidth("500px");
+        year.setConverter(plainIntegerConverter);
         mdate.setWidth("500px");
         url.setWidth("500px");
         fields.addComponents(name, title, type, year, mdate, url, actions);
@@ -195,7 +199,8 @@ public class PaperForm extends HorizontalLayout {
     public void cancel(Button.ClickEvent event) {
         // Place to call business logic.
         Notification.show("Cancelled", Type.TRAY_NOTIFICATION);
-        getUI().paperList.select(null);
+//        getUI().paperList.select(null);
+
         this.setVisible(false); //TODO
     }
 
@@ -209,6 +214,15 @@ public class PaperForm extends HorizontalLayout {
         }
         setVisible(paper != null);
     }
+
+    private StringToIntegerConverter plainIntegerConverter = new StringToIntegerConverter() {
+        protected java.text.NumberFormat getFormat(Locale locale) {
+            NumberFormat format = super.getFormat(locale);
+            format.setGroupingUsed(false);
+            return format;
+        };
+    };
+
 
     @Override
     public PapersUI getUI() {

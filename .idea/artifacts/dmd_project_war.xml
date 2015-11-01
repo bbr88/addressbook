@@ -1,7 +1,7 @@
 <component name="ArtifactManager">
   <artifact type="war" name="dmd_project:war">
     <output-path>$PROJECT_DIR$/target</output-path>
-    <root id="archive" name="addressbook-2.0.war">
+    <root id="archive" name="dmd_project-2.0.war">
       <element id="artifact" artifact-name="dmd_project:war exploded" />
     </root>
   </artifact>

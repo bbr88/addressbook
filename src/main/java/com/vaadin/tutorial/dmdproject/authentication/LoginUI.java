@@ -13,7 +13,6 @@ import java.io.Serializable;
 /**
  * Created by bbr on 26.10.15.
  */
-//@Theme("dmdproject")
 @Theme("mockapp")
 public class LoginUI extends CssLayout {
 

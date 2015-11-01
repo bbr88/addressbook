@@ -13,6 +13,9 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.viritin.button.MButton;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by bbr on 28.10.15.
  */
@@ -22,6 +25,7 @@ public class CrudView extends CssLayout implements View {
     private Grid paperList;
     private PaperForm paperForm;
     private AuthorForm authorForm;
+    private ComboBox searchBox;
 
     private CrudLogic crudLogic = new CrudLogic(this);
     private MButton newPaper;
@@ -52,16 +56,17 @@ public class CrudView extends CssLayout implements View {
         paperList.setSelectionMode(Grid.SelectionMode.SINGLE);
         paperList.addSelectionListener(e
                 -> {
-            paperForm.edit((Paper) paperList.getSelectedRow());
-            paperForm.getDelete().setVisible(true);
-            paperForm.setInsert(false);
-            paperForm.refreshAuthors(service.getRelatedAuthors((Paper) paperList.getSelectedRow()));
-            paperForm.refreshTitles(service.getRelatedTitles((Paper) paperList.getSelectedRow()));
+            if (e != null) {
+                paperForm.edit((Paper) paperList.getSelectedRow());
+                paperForm.getDelete().setVisible(true);
+                paperForm.setInsert(false);
+
+                paperForm.refreshAuthors(service.getRelatedAuthors((Paper) paperList.getSelectedRow()));
+                paperForm.refreshTitles(service.getRelatedTitles((Paper) paperList.getSelectedRow()));
+            }
         });
         refreshPapers();
         setIt();
-
-        //paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, service.selectPapers()));
 
         VerticalLayout barAndListLayout = new VerticalLayout();
         barAndListLayout.addComponent(topLayout);
@@ -70,14 +75,12 @@ public class CrudView extends CssLayout implements View {
         barAndListLayout.setSpacing(true);
         barAndListLayout.setSizeFull();
         barAndListLayout.setExpandRatio(paperList, 1);
-//        barAndListLayout.addComponent(paperForm);
         barAndListLayout.setStyleName("crud-main-layout");
 
         barAndListLayout.addComponent(paperForm);
         addComponent(paperForm);
         addComponent(authorForm);
         addComponent(barAndListLayout);
-//        addComponentAsFirst(paperForm);
 
         crudLogic.init();
     }
@@ -91,7 +94,21 @@ public class CrudView extends CssLayout implements View {
         searchPaper = new MButton("Search");
         searchPaper.addStyleName(ValoTheme.BUTTON_PRIMARY);
         searchPaper.setIcon(FontAwesome.ARCHIVE);
-        searchPaper.addClickListener(e -> searchPapers(filter.getValue()));
+        searchPaper.addClickListener(e -> searchPapers(filter.getValue(), searchBox.getValue().toString()));
+
+        searchBox = new ComboBox();
+        searchBox.setTextInputAllowed(false);
+        searchBox.setNullSelectionAllowed(false);
+
+        searchBox.addItem("author");
+        searchBox.addItem("title");
+        searchBox.addItem("type");
+        searchBox.addItem("year");
+        searchBox.addItem("book series");
+        searchBox.addItem("proceedings series");
+        searchBox.addItem("inproceedings series");
+        searchBox.addItem("journal");
+        searchBox.setValue("title");
 
         newPaper = new MButton("New paper");
         newPaper.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -122,6 +139,7 @@ public class CrudView extends CssLayout implements View {
 
         mainLayout.addComponent(filter);
         mainLayout.addComponent(searchPaper);
+        mainLayout.addComponent(searchBox);
         mainLayout.addComponent(newPaper);
         mainLayout.addComponent(newAuthor);
         mainLayout.addComponent(paperForm);
@@ -161,12 +179,17 @@ public class CrudView extends CssLayout implements View {
 
     }
 
-    private void searchPapers(String s) {
+    private void searchPapers(String s, String type) {
         if (s == null || s.length() == 0) {
             Notification.show("Empty search field", Notification.Type.HUMANIZED_MESSAGE);
             return;
         }
-        paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, service.search(s)));
+
+        List<Paper> papers = new ArrayList(service.search(s, type));
+
+        if (!papers.isEmpty()) {
+            paperList.setContainerDataSource(new BeanItemContainer<>(Paper.class, papers));
+        }
     }
 
     private void refreshPapers(String stringFilter) {

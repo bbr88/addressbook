@@ -79,11 +79,9 @@ public class AuthorService {
         }
 
         try {
-
             Author author = (Author) BeanUtils.cloneBean(entry);
             createNewAuthor(author);
-//            Notification.show(entry.getKey() + "  " + entry.getTitle() + "  " + entry.getYear() + "  " + entry.getUrl());
-//            update(entry.getKey(), entry.getTitle(), entry.getUrl());
+
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

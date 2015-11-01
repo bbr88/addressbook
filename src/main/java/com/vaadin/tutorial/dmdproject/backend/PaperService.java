@@ -10,11 +10,9 @@ import java.util.Date;
 /**
  * Separate Java service class.
  * Backend implementation for the address book application, with "detached entities"
- * simulating real world DAO. Typically these something that the Java EE
- * or Spring backend services provide.
+ * simulating real world DAO.
  */
 // Backend service class. This is just a typical Java backend implementation
-// class and nothing Vaadin specific.
 public class PaperService {
 
     private static PaperService instance;
@@ -39,9 +37,9 @@ public class PaperService {
     }
 
 
-    public List<Paper> search(String s) {
-        List<Paper> papers = new ArrayList<>();
-
+    public List<Paper> search(String s, String searchType) {
+        List<Paper> papers = new ArrayList();
+        String row = "";
 
         try {
             Class.forName("org.postgresql.Driver");
@@ -52,22 +50,105 @@ public class PaperService {
 
         try (Connection c = DriverManager.getConnection(url, user, password);
              Statement search = c.createStatement()) {
-
-            String sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
-                    "FROM AUTHORS " +
-                    "JOIN WRITTEN " +
-                    "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
-                    "JOIN PAPERS " +
-                    "ON WRITTEN.Key = PAPERS.Key " +
-                    "WHERE LOWER (authors.name) LIKE \'%" + s.toLowerCase() + "%\'" +
-                    "UNION " +
-                    "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
-                    "FROM AUTHORS " +
-                    "JOIN WRITTEN " +
-                    "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
-                    "JOIN PAPERS " +
-                    "ON WRITTEN.Key = PAPERS.Key " +
-                    "WHERE LOWER (papers.title) LIKE \'%" + s.toLowerCase() + "%\'";
+            searchType = searchType.toLowerCase();
+            switch (searchType){
+                case "author":
+                    row = "(authors.name)";
+                    break;
+                case "title":
+                    row = "(papers.title)";
+                    break;
+                case "type":
+                    row = "(papers.type)";
+                    break;
+                case "year":
+                    row = "(papers.year)";
+                    break;
+                case "book series":
+                    row = "(books.series)";
+                    break;
+                case "proceedings series":
+                    row = "(proceedings.series)";
+                    break;
+                case "inproceedings series":
+                    row = "(inproceedings.series)";
+                    break;
+                case "journal":
+                    row = "(articles.journal)";
+                    break;
+            }
+            String sqlQuery = "";
+            if(searchType.equals("author") || searchType.equals("title") || searchType.equals("type")){
+                sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+                        "FROM AUTHORS " +
+                        "JOIN WRITTEN " +
+                        "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                        "JOIN PAPERS " +
+                        "ON WRITTEN.Key = PAPERS.Key " +
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+            }
+            else if(searchType.equals("year")){
+                int year;
+                try
+                {
+                    year = Integer.parseInt(s);
+                    sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+                            "FROM AUTHORS " +
+                            "JOIN WRITTEN " +
+                            "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                            "JOIN PAPERS " +
+                            "ON WRITTEN.Key = PAPERS.Key " +
+                            "WHERE " + row + " = " + year;
+                }
+                catch(NumberFormatException nfe)
+                {
+                    Notification.show("Use digits to find papers by year", Notification.Type.TRAY_NOTIFICATION);
+                }
+            }
+            else if (searchType.equals("journal")){
+                sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+                        "FROM AUTHORS " +
+                        "JOIN WRITTEN " +
+                        "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                        "JOIN PAPERS " +
+                        "ON WRITTEN.Key = PAPERS.Key " +
+                        "JOIN ARTICLES " +
+                        "ON ARTICLES.Key = PAPERS.Key " +
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+            }
+            else if(searchType.equals("book series")){
+                sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+                        "FROM AUTHORS " +
+                        "JOIN WRITTEN " +
+                        "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                        "JOIN PAPERS " +
+                        "ON WRITTEN.Key = PAPERS.Key " +
+                        "JOIN BOOKS " +
+                        "ON BOOKS.Key = PAPERS.Key " +
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+            }
+            else if(searchType.equals("proceedings series")){
+                sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+                        "FROM AUTHORS " +
+                        "JOIN WRITTEN " +
+                        "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                        "JOIN PAPERS " +
+                        "ON WRITTEN.Key = PAPERS.Key " +
+                        "JOIN PROCEEDINGS " +
+                        "ON PROCEEDINGS.Key = PAPERS.Key " +
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+            }
+            else if(searchType.equals("inproceedings series")){
+                sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+                        "FROM AUTHORS " +
+                        "JOIN WRITTEN " +
+                        "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                        "JOIN PAPERS " +
+                        "ON WRITTEN.Key = PAPERS.Key " +
+                        "JOIN INPROCEEDINGS " +
+                        "ON INPROCEEDINGS.Key = PAPERS.Key " +
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+            }
 
             ResultSet rs = search.executeQuery(sqlQuery);
 
@@ -79,7 +160,7 @@ public class PaperService {
                 paper.setType(rs.getString(4));
                 paper.setYear(rs.getInt(5));
                 paper.setMdate(new Date());
-// paper.setMdate(new Date(rs.getString(5))); //TODO and it fucking doesn't work!
+// paper.setMdate(new Date(rs.getString(5))); //TODO
                 paper.setUrl(rs.getString(6));
                 papers.add(paper);
                 paper = new Paper();
@@ -122,7 +203,7 @@ public class PaperService {
                 paper.setType(rs.getString(3));
                 paper.setYear(rs.getInt(4));
                 paper.setMdate(new Date());
-//                paper.setMdate(new Date(rs.getString(5))); //TODO and it fucking doesn't work!
+//                paper.setMdate(new Date(rs.getString(5))); //TODO
                 paper.setUrl(rs.getString(6));
                 papers.add(paper);
                 paper = new Paper();
@@ -196,7 +277,7 @@ public class PaperService {
     }
 
 
-    public int createNewAuthor(Paper paper) {
+    private int createNewAuthor(Paper paper) {
         int newAuthorID = 0;
 
         try (Connection c = DriverManager.getConnection(url, user, password);
@@ -218,7 +299,7 @@ public class PaperService {
     }
 
 
-    public int getAuthorId(Paper paper) {
+    private int getAuthorId(Paper paper) {
         int result = Integer.MIN_VALUE;
 
         try (Connection c = DriverManager.getConnection(url, user, password);
@@ -267,14 +348,6 @@ public class PaperService {
             if ((id = getAuthorId(newP)) > 0) {
 
                 if (!writtenExists(id, newP.getKey())) {
-                    /*sqlQuery = "UPDATE WRITTEN " +
-                               "SET " +
-                               "AuthorID = \'" + id + "\' " +
-                               "WHERE AuthorID = " +
-                               "(SELECT AuthorID " +
-                               "FROM WRITTEN " +
-                               "WHERE Key = \'" + newP.getKey() + "\' LIMIT 1)" +
-                               "AND written.key = \'" + newP.getKey() + "\'";*/
                     sqlQuery = "INSERT INTO written " +
                                "(authorid, key) VALUES " +
                                "(" + id + ", \'" + newP.getKey() + "\')";
@@ -348,28 +421,6 @@ public class PaperService {
         }
     }
 
-
-    public synchronized void insertListener(Paper entry) {
-
-        try {
-            Class.forName("org.postgresql.Driver"); //TODO i'm not sure if it's necessary.
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        if (entry.getKey() == null) {
-            return;
-        }
-        try {
-            entry = (Paper) BeanUtils.cloneBean(entry);
-            insert(entry);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-        papers.put(entry.getKey(), entry);
-    }
-
     public synchronized void save(Paper entry, Paper oldEntry) {
 
         try {
@@ -385,8 +436,6 @@ public class PaperService {
         try {
 
             entry = (Paper) BeanUtils.cloneBean(entry);
-//            Notification.show(entry.getKey() + "  " + entry.getTitle() + "  " + entry.getYear() + "  " + entry.getUrl());
-//            update(entry.getKey(), entry.getTitle(), entry.getUrl());
             update(entry, oldEntry);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -396,125 +445,77 @@ public class PaperService {
 
     public List<Paper> getRelatedAuthors(Paper paper) {
         List<Paper> authors = new ArrayList<>();
-        try (Connection c = DriverManager.getConnection(url, user, password);
-             Statement search = c.createStatement()) {
+        if (paper != null) {
+            try (Connection c = DriverManager.getConnection(url, user, password);
+                 Statement search = c.createStatement()) {
 
-            String sqlQuery = "SELECT AUTHORS.name, PAPERS.title " +
-                              "FROM AUTHORS " +
-                              "JOIN WRITTEN " +
-                              "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
-                              "JOIN PAPERS " +
-                              "ON WRITTEN.Key = PAPERS.Key " +
-                              "WHERE LOWER (authors.name) LIKE \'%" + paper.getName().toLowerCase() + "%\' LIMIT 5";
+                String sqlQuery = "SELECT AUTHORS.name, PAPERS.title " +
+                                  "FROM AUTHORS " +
+                                  "JOIN WRITTEN " +
+                                  "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                                  "JOIN PAPERS " +
+                                  "ON WRITTEN.Key = PAPERS.Key " +
+                                  "WHERE LOWER (authors.name) LIKE \'%" + paper.getName().toLowerCase() + "%\' LIMIT 5";
 
-            ResultSet rs = search.executeQuery(sqlQuery);
-            Paper p = new Paper();
+                ResultSet rs = search.executeQuery(sqlQuery);
+                Paper p = new Paper();
 
-            while (rs.next()) {
-                p.setName(rs.getString(1));
-                p.setTitle(rs.getString(2));
-                authors.add(p);
-                p = new Paper();
+                while (rs.next()) {
+                    p.setName(rs.getString(1));
+                    p.setTitle(rs.getString(2));
+                    authors.add(p);
+                    p = new Paper();
+                }
+                rs.close();
+                Collections.sort(authors, (p1, p2) -> p1.getTitle().compareToIgnoreCase(p2.getTitle()));
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
             }
-            rs.close();
-            Collections.sort(authors, (p1, p2) -> p1.getTitle().compareToIgnoreCase(p2.getTitle()));
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
         return authors;
     }
 
     public List<Paper> getRelatedTitles(Paper paper) {
         List<Paper> titles = new ArrayList<>();
-        try (Connection c = DriverManager.getConnection(url, user, password);
-             Statement search = c.createStatement()) {
+        if (paper != null) {
+            try (Connection c = DriverManager.getConnection(url, user, password);
+                 Statement search = c.createStatement()) {
 
-            String searchFor[] = paper.getTitle().toLowerCase().split(" ");
-            Random rand = new Random();
+                String searchFor[] = paper.getTitle().replaceAll("[^a-zA-Z ]", "").toLowerCase().split(" ");
+                String searchTitle = "";
+                Random rand = new Random();
 
-            String sqlQuery = "SELECT DISTINCT AUTHORS.name, PAPERS.title " +
-                    "FROM AUTHORS " +
-                    "JOIN WRITTEN " +
-                    "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
-                    "JOIN PAPERS " +
-                    "ON WRITTEN.Key = PAPERS.Key " +
-                    "WHERE LOWER (papers.title) LIKE \'%" + searchFor[rand.nextInt(searchFor.length)] + "%\' LIMIT 5";
+                while (searchTitle.length() <= 4) {
+                    searchTitle = searchFor[rand.nextInt(searchFor.length)];
+                }
 
-            ResultSet rs = search.executeQuery(sqlQuery);
-            Paper p = new Paper();
 
-            while (rs.next()) {
-                p.setName(rs.getString(1));
-                p.setTitle(rs.getString(2));
-                titles.add(p);
-                p = new Paper();
+                String sqlQuery = "SELECT DISTINCT AUTHORS.name, PAPERS.title " +
+                                  "FROM AUTHORS " +
+                                  "JOIN WRITTEN " +
+                                  "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
+                                  "JOIN PAPERS " +
+                                  "ON WRITTEN.Key = PAPERS.Key " +
+                                  "WHERE LOWER (papers.title) LIKE \'%" + searchTitle + "%\' LIMIT 5";
+
+                ResultSet rs = search.executeQuery(sqlQuery);
+                Paper p = new Paper();
+
+                while (rs.next()) {
+                    p.setName(rs.getString(1));
+                    p.setTitle(rs.getString(2));
+                    titles.add(p);
+                    p = new Paper();
+                }
+                rs.close();
+                Collections.sort(titles, (p1, p2) -> p1.getTitle().compareToIgnoreCase(p2.getTitle()));
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
             }
-            rs.close();
-            Collections.sort(titles, (p1, p2) -> p1.getTitle().compareToIgnoreCase(p2.getTitle()));
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
         return titles;
-    }
-
-
-    public List<Paper> showRelated(Paper paper, String parameter){
-        List<Paper> papersTopic = new ArrayList();
-        List<Paper> papersAuthor = new ArrayList();
-        try (Connection c = DriverManager.getConnection(url, user, password);
-             Statement search = c.createStatement()) {
-
-            if(parameter.equals("author")){
-                String sqlQuery = "SELECT AUTHORS.name, PAPERS.title " +
-                        "FROM AUTHORS " +
-                        "JOIN WRITTEN " +
-                        "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
-                        "JOIN PAPERS " +
-                        "ON WRITTEN.Key = PAPERS.Key " +
-                        "WHERE LOWER (authors.name) LIKE \'%" + paper.getName().toLowerCase() + "%\' LIMIT 5";
-
-                ResultSet rs = search.executeQuery(sqlQuery);
-                Paper p = new Paper();
-                while(rs.next()){
-                    p.setName(rs.getString(1));
-                    p.setTitle(rs.getString(2));
-                    papersAuthor.add(p);
-                    p = new Paper();
-                }
-                rs.close();
-                Collections.sort(papersAuthor, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
-                return papersAuthor;
-            }
-            else if (parameter.equals("topic")){
-                String sqlQuery =
-                        "SELECT AUTHORS.name, PAPERS.title " +
-                                "FROM AUTHORS " +
-                                "JOIN WRITTEN " +
-                                "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
-                                "JOIN PAPERS " +
-                                "ON WRITTEN.Key = PAPERS.Key " +
-                                "WHERE LOWER (papers.title) LIKE \'%" + paper.getTitle().toLowerCase() + "%\' LIMIT 5";
-
-                ResultSet rs = search.executeQuery(sqlQuery);
-                Paper p = new Paper();
-                while(rs.next()){
-                    p.setName(rs.getString(1));
-                    p.setTitle(rs.getString(2));
-                    papersTopic.add(p);
-                    p = new Paper();
-                }
-                rs.close();
-                Collections.sort(papersTopic, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
-                return papersTopic;
-            }
-
-        }
-        catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return null;
     }
 
 }
