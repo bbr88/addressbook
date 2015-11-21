@@ -1,15 +1,19 @@
 package com.vaadin.tutorial.dmdproject.backend;
 
+import com.sun.jmx.remote.internal.ArrayQueue;
+import com.vaadin.tutorial.dmdproject.dbms.SystemCat;
+import com.vaadin.tutorial.dmdproject.dbms.UIHelper;
 import com.vaadin.ui.Notification;
 import org.apache.commons.beanutils.BeanUtils;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
 /**
  * Separate Java service class.
- * Backend implementation for the address book application, with "detached entities"
+ * Backend implementation for the application, with "detached entities"
  * simulating real world DAO.
  */
 // Backend service class. This is just a typical Java backend implementation
@@ -77,15 +81,33 @@ public class PaperService {
                     row = "(articles.journal)";
                     break;
             }
+
+            try {
+                SystemCat.searchForValue(s.toLowerCase());
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
             String sqlQuery = "";
+            List<List<String>> results = new ArrayList<>();
             if(searchType.equals("author") || searchType.equals("title") || searchType.equals("type")){
-                sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
+
+                try {
+                    UIHelper.init();
+                    SystemCat.loadTable("test");
+                    results = SystemCat.searchForValue(s.toLowerCase());
+                    Notification.show("TEST: " + results.size() + "s.toLower:= " + s.toLowerCase());
+
+                } catch (IOException ex) {}
+
+                /*sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
                         "FROM AUTHORS " +
                         "JOIN WRITTEN " +
                         "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
                         "JOIN PAPERS " +
                         "ON WRITTEN.Key = PAPERS.Key " +
-                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'" + " LIMIT 300";*/
             }
             else if(searchType.equals("year")){
                 int year;
@@ -150,10 +172,24 @@ public class PaperService {
                         "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
             }
 
-            ResultSet rs = search.executeQuery(sqlQuery);
+//            ResultSet rs = search.executeQuery(sqlQuery);
 
-            Paper paper = new Paper();
-            while (rs.next()) {
+//            Paper paper = new Paper();
+
+            results.stream()
+                   .forEach(strings -> {
+                       final Paper paper_ = new Paper();
+                       paper_.setName(strings.get(0));
+                       paper_.setKey(strings.get(1));
+                       paper_.setTitle(strings.get(2));
+                       paper_.setType("type");
+                       paper_.setYear(1861);
+                       paper_.setMdate(new Date());
+                       paper_.setUrl("http://meatspin.com");
+                       papers.add(paper_);
+                   });
+
+            /*while (rs.next()) {
                 paper.setName(rs.getString(1));
                 paper.setKey(rs.getString(2));
                 paper.setTitle(rs.getString(3));
@@ -164,8 +200,8 @@ public class PaperService {
                 paper.setUrl(rs.getString(6));
                 papers.add(paper);
                 paper = new Paper();
-            }
-            rs.close();
+            }*/
+//            rs.close();
 
             if (papers.isEmpty()) {
                 Notification.show("No results found", Notification.Type.TRAY_NOTIFICATION);
@@ -338,7 +374,6 @@ public class PaperService {
 
     public void update(Paper newP, Paper oldP) throws SQLException {
         String sqlQuery = "";
-        int r = 0;
         int r2 = 0;
         int id = 0;
 

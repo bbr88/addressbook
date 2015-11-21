@@ -1,6 +1,7 @@
 package com.vaadin.tutorial.dmdproject.crud;
 
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.sqlcontainer.SQLContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.tutorial.dmdproject.AuthorForm;
@@ -10,8 +11,11 @@ import com.vaadin.tutorial.dmdproject.backend.Paper;
 import com.vaadin.tutorial.dmdproject.backend.PaperService;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.addons.lazyquerycontainer.LazyEntityContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.viritin.button.MButton;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import org.vaadin.viritin.grid.MGrid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +25,10 @@ import java.util.List;
  */
 public class CrudView extends CssLayout implements View {
 
-    public static final String VIEW_NAME = "DBLP"; //digital
-    private Grid paperList;
+    public static final String VIEW_NAME = "DBLP"; //header
+//    private Grid paperList;
+    private MGrid<Paper> paperList;
+//    private LazyGrid paperList;
     private PaperForm paperForm;
     private AuthorForm authorForm;
     private ComboBox searchBox;
@@ -41,7 +47,13 @@ public class CrudView extends CssLayout implements View {
         HorizontalLayout topLayout = createTopBar();
 
         BeanItemContainer<Paper> myBean = new BeanItemContainer<Paper>(Paper.class);
-        paperList = new Grid(myBean);
+//        paperList = new LazyGrid(myBean);
+        paperList = new MGrid<>();
+        paperList.setContainerDataSource(myBean);
+        
+
+        paperList.setImmediate(true);
+
         paperList.addStyleName(ValoTheme.TABLE_NO_HORIZONTAL_LINES);
         paperList.addStyleName(ValoTheme.TABLE_NO_VERTICAL_LINES);
         paperList.setColumnOrder("name", "title", "type", "year");
@@ -57,7 +69,7 @@ public class CrudView extends CssLayout implements View {
         paperList.addSelectionListener(e
                 -> {
             if (e != null) {
-                paperForm.edit((Paper) paperList.getSelectedRow());
+                    paperForm.edit((Paper) paperList.getSelectedRow());
                 paperForm.getDelete().setVisible(true);
                 paperForm.setInsert(false);
 
@@ -200,5 +212,6 @@ public class CrudView extends CssLayout implements View {
             paperForm.setVisible(false);
         }
     }
+
 
 }
