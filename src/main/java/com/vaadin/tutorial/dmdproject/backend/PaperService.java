@@ -90,6 +90,7 @@ public class PaperService {
             }
 
             String sqlQuery = "";
+
             List<List<String>> results = new ArrayList<>();
             if(searchType.equals("author") || searchType.equals("title") || searchType.equals("type")){
 
