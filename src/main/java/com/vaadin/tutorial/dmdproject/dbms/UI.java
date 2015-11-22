@@ -10,8 +10,5 @@ public class UI {
 
         UIHelper.init();
         SystemCat.loadTable("test");
-
-
-
     }
 }
