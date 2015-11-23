@@ -15,8 +15,10 @@ public class CrudLogic { //TODO
 
     public void init() {
         if (!PapersUI.get().getAccessControl().isUserInRole("admin")) {
-            crudView.setPaperListEnabled(false);
+//            crudView.setPaperListEnabled(false);
             crudView.setNewPaperEnabled(false);
+            crudView.setNewAuthorEnabled(false);
+            crudView.getPaperForm().getDelete().setEnabled(false);
         }
     }
 }

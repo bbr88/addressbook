@@ -44,6 +44,7 @@ public class PaperForm extends HorizontalLayout {
         isInsert = state;
     }
 
+    //delete button getter
     public Button getDelete() {
         return delete;
     }
@@ -69,6 +70,7 @@ public class PaperForm extends HorizontalLayout {
         configureComponents();
         buildLayout();
     }
+
 
     private void configureComponents() {
         /* Highlight primary actions.

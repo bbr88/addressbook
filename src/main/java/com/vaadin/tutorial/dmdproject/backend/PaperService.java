@@ -85,7 +85,7 @@ public class PaperService {
                         "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
                         "JOIN PAPERS " +
                         "ON WRITTEN.Key = PAPERS.Key " +
-                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\' LIMIT 500";
             }
             else if(searchType.equals("year")){
                 int year;
@@ -98,7 +98,7 @@ public class PaperService {
                             "ON AUTHORS.AuthorID = WRITTEN.AuthorID " +
                             "JOIN PAPERS " +
                             "ON WRITTEN.Key = PAPERS.Key " +
-                            "WHERE " + row + " = " + year;
+                            "WHERE " + row + " = " + year + " LIMIT 500";
                 }
                 catch(NumberFormatException nfe)
                 {
@@ -114,7 +114,7 @@ public class PaperService {
                         "ON WRITTEN.Key = PAPERS.Key " +
                         "JOIN ARTICLES " +
                         "ON ARTICLES.Key = PAPERS.Key " +
-                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\' LIMIT 500";
             }
             else if(searchType.equals("book series")){
                 sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
@@ -125,7 +125,7 @@ public class PaperService {
                         "ON WRITTEN.Key = PAPERS.Key " +
                         "JOIN BOOKS " +
                         "ON BOOKS.Key = PAPERS.Key " +
-                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\' LIMIT 500";
             }
             else if(searchType.equals("proceedings series")){
                 sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
@@ -136,7 +136,7 @@ public class PaperService {
                         "ON WRITTEN.Key = PAPERS.Key " +
                         "JOIN PROCEEDINGS " +
                         "ON PROCEEDINGS.Key = PAPERS.Key " +
-                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\' LIMIT 500";
             }
             else if(searchType.equals("inproceedings series")){
                 sqlQuery = "SELECT AUTHORS.name, PAPERS.key, PAPERS.title, PAPERS.type, PAPERS.year, PAPERS.url " +
@@ -147,7 +147,7 @@ public class PaperService {
                         "ON WRITTEN.Key = PAPERS.Key " +
                         "JOIN INPROCEEDINGS " +
                         "ON INPROCEEDINGS.Key = PAPERS.Key " +
-                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\'";
+                        "WHERE LOWER " + row + " LIKE \'%" + s.toLowerCase() + "%\' LIMIT 500";
             }
 
             ResultSet rs = search.executeQuery(sqlQuery);

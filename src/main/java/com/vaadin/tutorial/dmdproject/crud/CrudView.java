@@ -168,6 +168,13 @@ public class CrudView extends CssLayout implements View {
     protected void setNewPaperEnabled(boolean state) {
         newPaper.setEnabled(state);
     }
+    protected void setNewAuthorEnabled(boolean state) {
+        newAuthor.setEnabled(state);
+    }
+
+    protected PaperForm getPaperForm() {
+        return paperForm;
+    }
 
     protected void setIt() {
         paperList.setContainerDataSource(new BeanItemContainer<>(
