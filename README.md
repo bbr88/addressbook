@@ -1,2 +1,3 @@
 # dmd project 
-Simple dblp management system
+Simple dblp management system. 
+The main branch is 'anotherbranch'.
